@@ -61,6 +61,7 @@ export {
 
 BERTINIexe=(options BraidGroupHomotopy).Configuration#"BERTINIexecutable"
 needsPackage "SimpleDoc"
+printingPrecision=300
 
 computeBranchPoints=method(TypicalValue=>Thing,Options=>{    	
     })
@@ -225,6 +226,7 @@ for smallSegmentIndex to #criticalTwistPointsOneBranchPoint-1 do (
 restart
 installPackage"BraidGroupHomotopy"
 --
+printingPrecision=300
 R=CC[z,t,x,y,yA,s]
 varList=(z,t,x,y,yA,s)
 f=z^3-t^2; 
@@ -235,11 +237,11 @@ SetDownstairsStartPoint==first cbpaf
 SetUpstairsStartFiber==last cbpaf
 #SetDownstairsStartPoint==1
 #SetUpstairsStartFiber==3
-SetEncirclingTriangles==computeEncirclingTriangles(null)
+SetEncirclingTriangles=computeEncirclingTriangles(null)
 #computeEncirclingTriangles(null)==#SetBraidGroupBranchPoints
 oneTriangle=first SetEncirclingTriangles
 --computeTwistLocusOfTriangle(varList,f,oneTriangle)
-computeTwists(varList,f,oneTriangle)
+computeBraid(varList,f,oneTriangle)
 
 f=z^4-4*z^2+3+t;allBranchPointsT={ -3,1};
 ---
