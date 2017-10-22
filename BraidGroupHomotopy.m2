@@ -62,7 +62,6 @@ export {
 BERTINIexe=(options BraidGroupHomotopy).Configuration#"BERTINIexecutable"
 needsPackage "SimpleDoc"
 printingPrecision=300
-
 computeBranchPoints=method(TypicalValue=>Thing,Options=>{    	
     })
 computeBranchPoints(Thing,Thing,Thing) := o ->(z,t,f)->(
@@ -141,19 +140,19 @@ computeTwistLocusOfTriangle(Thing,Thing,Thing) := o ->(varList,f,aTriangle)->(
 oneTwistLocusPathAndLoop:={};
 thePath:=aTriangle|SetDownstairsStartPoint;
 for segmentNumber to #thePath-1-1 do(
-print segmentNumber;
+--print segmentNumber;
 oneSegment:={thePath_segmentNumber,thePath_(segmentNumber+1)};
 twistLocusSegment:={};
 gam':=oneSegment_0;
 gam'':=oneSegment_1;
 fs:=sub(f,{z=>x+ii*y,	t=>(1-s)*gam'+s*gam''	});
-print 3;
+--print 3;
 g1:=value replace("ii","0",     toString  (fs));
 g1=1/sub(max((flatten entries ((coefficients g1)_1))),CC)*g1;
-print 1;
+--print 1;
 g2:=value replace("ii","0",     toString  (ii*fs));
 g2=1/sub(max((flatten entries ((coefficients g2)_1))),CC)*g2;
-print 2;
+--print 2;
 fiberG:={g1,g2,sub(g1,{y=>yA}),sub(g2,{y=>yA})};
 makeB'InputFile(StoreBraidGroupFiles,B'Configs=>{"MPTYPE"=>2},    
     AffVariableGroup=>{x,y,yA,s},
@@ -161,8 +160,8 @@ makeB'InputFile(StoreBraidGroupFiles,B'Configs=>{"MPTYPE"=>2},
 runBertini(StoreBraidGroupFiles);
 realSols:=importSolutionsFile(StoreBraidGroupFiles,NameSolutionsFile=>"real_finite_solutions");
 realSCoords:=radicalList((realSols/last),SetSameSCoordinateTolerance);
-print (#realSols);
-print radicalList(sort (realSols/last),SetSameSCoordinateTolerance);
+--print (#realSols);
+--print radicalList(sort (realSols/last),SetSameSCoordinateTolerance);
 branchS:={};
 twistLocusSegment={};
 for i in realSCoords do(
@@ -170,7 +169,8 @@ for i in realSCoords do(
 if #branchS>0 then branchS=sort radicalList(branchS,SetSameSCoordinateTolerance);
 twistLocusSegment=twistLocusSegment|radicalList((for i in branchS list 	sub(sub((1-s)*gam'+s*gam'',{s=>i}),CC))|{oneSegment_1},SetSameSCoordinateTolerance);
 oneTwistLocusPathAndLoop=oneTwistLocusPathAndLoop|twistLocusSegment;
-print (#oneTwistLocusPathAndLoop,segmentNumber));
+--print (#oneTwistLocusPathAndLoop,segmentNumber)
+);
 print ("Twist loci found! ");
 return oneTwistLocusPathAndLoop
 )
@@ -205,11 +205,10 @@ for smallSegmentIndex to #criticalTwistPointsOneBranchPoint-1 do (
 	    NameSolutionsFile=>"raw_solutions_"|smallSegmentIndex,OrderPaths=>true);
     s2:= flatten sortBraid importSolutionsFile(StoreBraidGroupFiles,
 	    NameSolutionsFile=>"raw_solutions_"|smallSegmentIndex,OrderPaths=>true);
-    if  (#radicalList((flatten s1)/realPart,1e-10)==#(flatten s1))
-    then print "Untwisted fiber over: "
-    else print (toString (#(flatten s1)-(#radicalList((flatten s1)/realPart,1e-10)))|" twists on fiber over: ");
+    if not (#radicalList((flatten s1)/realPart,SetSameXCoordinateTolerance)==#(flatten s1))
+    then print (toString (#(flatten s1)-(#radicalList((flatten s1)/realPart,1e-10)))|" twists on fiber over: ");
 --    print (#radicalList((flatten s1)/realPart,1e-10),#(flatten s1));
-    if #radicalList((flatten s1)/realPart,1e-10)>0--<#(flatten s1) 
+    if #radicalList((flatten s1)/realPart,1e-10)<#(flatten s1) ---<0 to print allfibers
     then (
       printingPrecision=5;
       print (criticalTwistPointsOneBranchPoint_smallSegmentIndex);
@@ -217,7 +216,8 @@ for smallSegmentIndex to #criticalTwistPointsOneBranchPoint-1 do (
       print (toString s2);
       printingPrecision=300);
     moveB'File(StoreBraidGroupFiles,"final_parameters","start_parameters");        
-    print ("END SEGMENT "|smallSegmentIndex)	);
+--    print ("END SEGMENT "|smallSegmentIndex)	
+);
     print ("END BRANCH POINT "))      
 
 
@@ -243,22 +243,78 @@ oneTriangle=first SetEncirclingTriangles
 --computeTwistLocusOfTriangle(varList,f,oneTriangle)
 computeBraid(varList,f,oneTriangle)
 
-f=z^4-4*z^2+3+t;allBranchPointsT={ -3,1};
----
-f=z^6-4*z^3+3+t
-makeB'InputFile(theDir,
-    AffVariableGroup=>{z},
-    B'Polynomials=>{diff(z,f)}   )
-runBertini(theDir)
-allBranchPointsT=radicalList(flatten importSolutionsFile(theDir),1e-10)
+
+--Example 2. 
+restart
+installPackage"BraidGroupHomotopy"
 --
+printingPrecision=300
+R=CC[z,t,x,y,yA,s]
+varList=(z,t,x,y,yA,s)
+f=z^4-4*z^2+3+t; 
+--allBranchPointsT={ -3,1};
+computeBranchPoints(z,t,f)
+SetBraidGroupBranchPoints
+cbpaf=computeBasePointAndFiber(z,t,f)
+SetDownstairsStartPoint==first cbpaf
+SetUpstairsStartFiber==last cbpaf
+#SetDownstairsStartPoint==1
+#SetUpstairsStartFiber==first degree f
+SetEncirclingTriangles=computeEncirclingTriangles(null)
+#computeEncirclingTriangles(null)==#SetBraidGroupBranchPoints
+oneTriangle=first SetEncirclingTriangles
+--computeTwistLocusOfTriangle(varList,f,oneTriangle)
+computeBraid(varList,f,oneTriangle)
+
+
+
+--Example 3. 
+restart
+installPackage"BraidGroupHomotopy"
+--
+printingPrecision=300
+R=CC[z,t,x,y,yA,s]
+varList=(z,t,x,y,yA,s)
+f=z^6-4*z^3+3+t
+computeBranchPoints(z,t,f)
+SetBraidGroupBranchPoints
+cbpaf=computeBasePointAndFiber(z,t,f)
+SetDownstairsStartPoint==first cbpaf
+SetUpstairsStartFiber==last cbpaf
+#SetDownstairsStartPoint==1
+#SetUpstairsStartFiber==first degree f
+SetEncirclingTriangles=computeEncirclingTriangles(null)
+#computeEncirclingTriangles(null)==#SetBraidGroupBranchPoints
+oneTriangle=first SetEncirclingTriangles
+--computeTwistLocusOfTriangle(varList,f,oneTriangle)
+computeBraid(varList,f,oneTriangle)
+
+
+
+---Example 4
+--
+restart
+installPackage"BraidGroupHomotopy"
+--
+printingPrecision=300
+R=CC[z,t,x,y,yA,s]
+varList=(z,t,x,y,yA,s)
 f=z^4-2*t^3*z^2-4*t^5*z+t^6-t^7
-makeB'InputFile(theDir,
-    AffVariableGroup=>{t,z},
-    B'Polynomials=>{f,diff(z,f)}   )
-runBertini(theDir)
-allBranchPointsT=radicalList( (importSolutionsFile(theDir))/first,1e-10)
----
+computeBranchPoints(z,t,f)
+SetBraidGroupBranchPoints
+cbpaf=computeBasePointAndFiber(z,t,f)
+SetDownstairsStartPoint==first cbpaf
+SetUpstairsStartFiber==last cbpaf
+#SetDownstairsStartPoint==1
+#SetUpstairsStartFiber==first degree f
+SetEncirclingTriangles=computeEncirclingTriangles(null)
+#computeEncirclingTriangles(null)==#SetBraidGroupBranchPoints
+oneTriangle=first SetEncirclingTriangles
+--computeTwistLocusOfTriangle(varList,f,oneTriangle)
+computeBraid(varList,f,oneTriangle)
+
+
+
 
 --Botong's emailed example:
 f=z^4-2*z^3*t^2-4*z^5*t+z^6-z^7
