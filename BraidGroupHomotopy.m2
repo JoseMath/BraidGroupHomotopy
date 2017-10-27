@@ -325,6 +325,32 @@ makeB'InputFile(theDir,
 runBertini(theDir)
 allBranchPointsT=radicalList( (importSolutionsFile(theDir))/first,1e-10)
 
+----Example 5 \label{ex:dessinA}
+restart
+installPackage"BraidGroupHomotopy"
+--
+printingPrecision=300
+R=CC[z,t,x,y,yA,s]
+varList=(z,t,x,y,yA,s)
+alpha=(34+6*sqrt(21))/7
+--alpha=(34-6*sqrt(21))/7
+f=1/100*z^3*(z^2-2*z+alpha)^2-t
+computeBranchPoints(z,t,f)--there should be two branch points. 
+--{-1.6314861610711+8.10462807976364e-15*ii, -8.69326802036999e-14+3.23872870621213e-14*ii}
+#SetBraidGroupBranchPoints===2
+
+cbpaf=computeBasePointAndFiber(z,t,f)
+
+SetDownstairsStartPoint==first cbpaf
+SetUpstairsStartFiber==last cbpaf
+#SetDownstairsStartPoint==1
+#SetUpstairsStartFiber==first degree f
+SetEncirclingTriangles=computeEncirclingTriangles(null)
+#computeEncirclingTriangles(null)==#SetBraidGroupBranchPoints
+
+theBraids=apply(SetEncirclingTriangles,oneTriangle->computeBraid(varList,f,oneTriangle))
+
+
 *}
 
 
@@ -354,89 +380,6 @@ beginDocumentation()
 
 load "./BraidGroupHomotopySupplement/doc.m2";
 end
-
-
-
-------------------------------------------------------------------------------------------------------------------------------------------------------
---Determine all twist loci 
-------------------------------------------------------------------------------------------------------------------------------------------------------
-allTwistLoci={}
-for branchPointIndex to #allBranchPointsT-1 do(
-    print "branchPointIndex";
-    print branchPointIndex;
-oneBranchT=allBranchPointsT_branchPointIndex;
-print oneBranchT;
-oneTwistLocusPathAndLoop={};
-thePath=theTriangles_branchPointIndex|startBasePoint;
-for segmentNumber to #thePath-2 do(
-print segmentNumber;
-oneSegment={thePath_segmentNumber,thePath_(segmentNumber+1)};
-twistLocusSegment={};
-gam'=oneSegment_0;
-gam''=oneSegment_1;
-fs=sub(f,{z=>x+ii*y,	t=>(1-s)*gam'+s*gam''	});
-print 3;
-g1=value replace("ii","0",     toString  (fs));
-g1=1/sub(max((flatten entries ((coefficients g1)_1))),CC)*g1;
-print 1;
-g2=value replace("ii","0",     toString  (ii*fs));
-g2=1/sub(max((flatten entries ((coefficients g2)_1))),CC)*g2;
-print 2;
-fiberG={g1,g2,sub(g1,{y=>yA}),sub(g2,{y=>yA})};
-makeB'InputFile(theDir2,B'Configs=>{{MPTYPE,2}},    AffVariableGroup=>{x,y,yA,s},       B'Polynomials=>fiberG    );
-runBertini(theDir2);
-readFile(theDir2);
-realSols=importSolutionsFile(theDir2,NameSolutionsFile=>"real_finite_solutions");
-realSCoords=radicalList((realSols/last),1e-10);
-print (#realSols);
-print radicalList(sort (realSols/last),1e-10);
-branchS={};
-twistLocusSegment={};
-for i in realSCoords do(
-  if  (realPart i)<1 and 0<(realPart  i) then branchS=branchS|{ i});
-if #branchS>0 then branchS=sort radicalList(branchS,1e-10);
-twistLocusSegment=twistLocusSegment|radicalList((for i in branchS list 	sub(sub((1-s)*gam'+s*gam'',{s=>i}),CC))|{oneSegment_1},1e-10);
-oneTwistLocusPathAndLoop=oneTwistLocusPathAndLoop|twistLocusSegment;
-print (#oneTwistLocusPathAndLoop,segmentNumber));
---
-allTwistLoci=append(allTwistLoci,oneTwistLocusPathAndLoop))
----------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------
---Now we determine the twist.
----------------------------------------------------------------------------------
-writeStartFile(theDir, for i in startFiber list i,NameStartFile=>"start");
-writeParameterFile(theDir, startBasePoint,NameParameterFile=>"start_parameters")
----------------
-for branchPointIndex to #allTwistLoci-1 do(
-criticalTwistPointsOneBranchPoint=allTwistLoci_branchPointIndex;--DOnt do radical List
-for smallSegmentIndex to #criticalTwistPointsOneBranchPoint-1 do (
-    writeParameterFile(theDir,
-	{criticalTwistPointsOneBranchPoint_smallSegmentIndex},
-	NameParameterFile=>"final_parameters");
-    runBertini(theDir);
-    moveB'File(theDir,"raw_solutions","raw_solutions_"|smallSegmentIndex);
-    writeStartFile(theDir,
-	sortBraid importSolutionsFile(theDir,	    NameSolutionsFile=>"raw_solutions_"|smallSegmentIndex,OrderPaths=>true)	);
-    s1= flatten importSolutionsFile(theDir,
-	    NameSolutionsFile=>"raw_solutions_"|smallSegmentIndex,OrderPaths=>true);
-    s2= flatten sortBraid importSolutionsFile(theDir,
-	    NameSolutionsFile=>"raw_solutions_"|smallSegmentIndex,OrderPaths=>true);
-    if  (#radicalList((flatten s1)/realPart,1e-10)==#(flatten s1))
-    then print "Untwisted fiber over: "
-    else print (toString (#(flatten s1)-(#radicalList((flatten s1)/realPart,1e-10)))|" twists on fiber over: ");
---    print (#radicalList((flatten s1)/realPart,1e-10),#(flatten s1));
-    if #radicalList((flatten s1)/realPart,1e-10)>0--<#(flatten s1) 
-    then (
-      printingPrecision=5;
-      print (criticalTwistPointsOneBranchPoint_smallSegmentIndex);
-      print (toString s1);
-      print (toString s2);
-      printingPrecision=300);
-    moveB'File(theDir,"final_parameters","start_parameters");        
-    print ("END SEGMENT "|smallSegmentIndex)	);
-    print ("END BRANCH POINT "|branchPointIndex))      
-
 
 
 
