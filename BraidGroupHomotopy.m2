@@ -351,6 +351,33 @@ SetEncirclingTriangles=computeEncirclingTriangles(null)
 theBraids=apply(SetEncirclingTriangles,oneTriangle->computeBraid(varList,f,oneTriangle))
 
 
+
+
+----Example 5 \label{ex:dessinB}
+restart
+installPackage"BraidGroupHomotopy"
+--
+printingPrecision=300
+R=CC[z,t,x,y,yA,s]
+varList=(z,t,x,y,yA,s)
+beta=(34-6*sqrt(21))/7
+f=z^3*(z^2-2*z+beta)^2-t/20
+computeBranchPoints(z,t,f)--there should be two branch points. 
+
+#SetBraidGroupBranchPoints===2
+
+cbpaf=computeBasePointAndFiber(z,t,f)
+
+SetDownstairsStartPoint==first cbpaf
+SetUpstairsStartFiber==last cbpaf
+#SetDownstairsStartPoint==1
+#SetUpstairsStartFiber==first degree f
+SetEncirclingTriangles=computeEncirclingTriangles(null)
+#computeEncirclingTriangles(null)==#SetBraidGroupBranchPoints
+
+theBraids=apply(SetEncirclingTriangles,oneTriangle->computeBraid(varList,f,oneTriangle))
+
+
 *}
 
 
