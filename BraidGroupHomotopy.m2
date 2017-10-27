@@ -78,9 +78,9 @@ computeBranchPoints(Thing,Thing,Thing) := o ->(z,t,f)->(
     )
 --We do not compute the set of nonpoperness. 
 
-sortBraid=method(TypicalValue=>Thing,Options=>{    	
+sortBraidOld=method(TypicalValue=>Thing,Options=>{    	
     })
-sortBraid(List) := o ->(twistedSols)->(
+sortBraidOld(List) := o ->(twistedSols)->(
     skipOne:=0;
     reorderedFiber:={};
     for onePoint to #twistedSols-1 do(	
@@ -96,6 +96,38 @@ sortBraid(List) := o ->(twistedSols)->(
 --    print reorderedFiber;
     if #reorderedFiber=!=#twistedSols then error"Bad Sort";
     return reorderedFiber)
+
+
+sortBraid=method(TypicalValue=>Thing,Options=>{    	
+    })
+sortBraid(List) := o ->(twistedSols)->(
+    twistedSols=twistedSols/first;
+    reorderSols:={};
+    solCounter:=0;
+    while #twistedSols>0 do(
+      if #twistedSols==1 
+      then (	  
+	  reorderSols=reorderSols|twistedSols;
+	  twistedSols=drop(twistedSols,1))
+      else 
+        if #twistedSols>1 
+	then(
+          firstSol:=twistedSols_0;
+	  secondSol:=twistedSols_1;
+      	  if abs((realPart firstSol)-(realPart secondSol))>SetSameXCoordinateTolerance 
+      	  then (
+	    solCounter=solCounter+1;
+	    twistedSols=drop(twistedSols,1);
+	    reorderSols=reorderSols|{firstSol})
+          else (
+      	    if (imaginaryPart firstSol)<(imaginaryPart secondSol)
+	    then   	print ("The twist is : "|"["|solCounter+1|","|solCounter+2|"]")
+	    else   	print ("The twist is : "|"["|solCounter+2|","|solCounter+1|"]");
+	    solCounter=solCounter+2;
+	    twistedSols=drop(twistedSols,2);
+	    reorderSols=reorderSols|{secondSol,firstSol})    		  
+	  ));
+      return apply(reorderSols,i->{i}))
 
 ---------------------------------------------------------------------------
 computeBasePointAndFiber=method(TypicalValue=>Thing,Options=>{    	
@@ -199,14 +231,14 @@ for smallSegmentIndex to #criticalTwistPointsOneBranchPoint-1 do (
 	NameParameterFile=>"final_parameters");
     runBertini(StoreBraidGroupFiles);
     moveB'File(StoreBraidGroupFiles,"raw_solutions","raw_solutions_"|smallSegmentIndex);
-    writeStartFile(StoreBraidGroupFiles,
-	sortBraid importSolutionsFile(StoreBraidGroupFiles,	    NameSolutionsFile=>"raw_solutions_"|smallSegmentIndex,OrderPaths=>true)	);
-    s1:= flatten importSolutionsFile(StoreBraidGroupFiles,
+    s1Points:= importSolutionsFile(StoreBraidGroupFiles,
 	    NameSolutionsFile=>"raw_solutions_"|smallSegmentIndex,OrderPaths=>true);
-    s2:= flatten sortBraid importSolutionsFile(StoreBraidGroupFiles,
-	    NameSolutionsFile=>"raw_solutions_"|smallSegmentIndex,OrderPaths=>true);
+    s1:=flatten s1Points;
+    s2Points:=sortBraid(s1Points);
+    s2:=flatten s2Points;
+    writeStartFile(StoreBraidGroupFiles,s2Points);
     if not (#radicalList((flatten s1)/realPart,SetSameXCoordinateTolerance)==#(flatten s1))
-    then print (toString (#(flatten s1)-(#radicalList((flatten s1)/realPart,1e-10)))|" twists on fiber over: ");
+    then print (toString (#(flatten s1)-(#radicalList((flatten s1)/realPart,SetSameXCoordinateTolerance)))|" twists on fiber over: ");
 --    print (#radicalList((flatten s1)/realPart,1e-10),#(flatten s1));
     if #radicalList((flatten s1)/realPart,1e-10)<#(flatten s1) ---<0 to print allfibers
     then (
@@ -244,6 +276,33 @@ oneTriangle=first SetEncirclingTriangles
 computeBraid(varList,f,oneTriangle)
 
 
+i32 : --computeTwistLocusOfTriangle(varList,f,oneTriangle)
+      computeBraid(varList,f,oneTriangle)
+Twist loci found! 
+The twist is : [1,2]
+1 twists on fiber over: 
+-.025508
+{-.043327-.075045*ii, -.043327+.075045*ii, .086654}
+{-.043327-.075045*ii, -.043327+.075045*ii, .086654}
+The twist is : [2,3]
+1 twists on fiber over: 
+-.033359*ii
+{-.10363, .051814-.089744*ii, .051814+.089744*ii}
+{-.10363, .051814-.089744*ii, .051814+.089744*ii}
+The twist is : [1,2]
+1 twists on fiber over: 
+.037759
+{-.056276-.097472*ii, -.056276+.097472*ii, .11255}
+{-.056276-.097472*ii, -.056276+.097472*ii, .11255}
+The twist is : [2,3]
+1 twists on fiber over: 
+.026369*ii
+{-.088591, .044296-.076722*ii, .044296+.076722*ii}
+{-.088591, .044296-.076722*ii, .044296+.076722*ii}
+END BRANCH POINT 
+
+
+
 --Example 2. 
 restart
 installPackage"BraidGroupHomotopy"
@@ -266,7 +325,32 @@ oneTriangle=first SetEncirclingTriangles
 --computeTwistLocusOfTriangle(varList,f,oneTriangle)
 computeBraid(varList,f,oneTriangle)
 
+twoTriangle=last SetEncirclingTriangles;
+computeBraid(varList,f,twoTriangle)
 
+
+i16 : --computeTwistLocusOfTriangle(varList,f,oneTriangle)
+      computeBraid(varList,f,oneTriangle)
+Twist loci found! 
+The twist is : [1,2]
+The twist is : [3,4]
+2 twists on fiber over: 
+1.0378
+{-1.4159-.06862*ii, -1.4159+.06862*ii, 1.4159-.06862*ii, 1.4159+.06862*ii}
+{-1.4159-.06862*ii, -1.4159+.06862*ii, 1.4159-.06862*ii, 1.4159+.06862*ii}
+END BRANCH POINT 
+
+
+ii18 : twoTriangle=last SetEncirclingTriangles;
+
+ii19 : computeBraid(varList,f,twoTriangle)
+Twist loci found! 
+The twist is : [2,3]
+1 twists on fiber over: 
+-3.0255
+{-2.0016, -.079793*ii, .079793*ii, 2.0016}
+{-2.0016, -.079793*ii, .079793*ii, 2.0016}
+END BRANCH POINT 
 
 --Example 3. 
 restart
@@ -474,3 +558,5 @@ runBertini(theDir)
 allBranchPointsT=radicalList( (importSolutionsFile(theDir))/first,1e-10)
 
 
+L={-.32844+.055715*ii, .10536-.34454*ii, .2258+.2872*ii, .96477+2.7327*ii, 1.0007-2.7228*ii, 1.0007-2.8521*ii, 1.0311+2.8437*ii}
+netList sortBraid(apply(L,i->{i})    )
