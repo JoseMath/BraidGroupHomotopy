@@ -1,0 +1,87 @@
+3
+
+o2 = 3
+
+i3 : 
+----Example 5 \label{ex:dessinB}
+restart
+loadPackage"BraidGroupHomotopy"
+          Macaulay2, version 1.10
+with packages: ConwayPolynomials, Elimination, IntegralClosure, InverseSystems, LLLBases, PrimaryDecomposition, ReesAlgebra, TangentCone
+
+i1 : --loading configuration for package "BraidGroupHomotopy" from file /Users/jo/Library/Application Support/Macaulay2/init-BraidGroupHomotopy.m2
+--loading configuration for package "Bertini" from file /Users/jo/Library/Application Support/Macaulay2/init-Bertini.m2
+
+o1 = BraidGroupHomotopy
+
+o1 : Package
+
+i2 : 
+--
+printingPrecision=300
+R=CC[z,t,x,y,yA,s];
+varList=(z,t,x,y,yA,s);
+beta=(34-6*sqrt(21))/7;
+f=z^3*(z^2-2*z+beta)^2-t/20;
+computeBranchPoints(z,t,f);--there should be two branch points. 
+
+#SetBraidGroupBranchPoints===2;
+
+cbpaf=computeBasePointAndFiber(z,t,f);
+
+SetDownstairsStartPoint==first cbpaf;
+SetUpstairsStartFiber==last cbpaf;
+#SetDownstairsStartPoint==1;
+#SetUpstairsStartFiber==first degree f;
+SetEncirclingTriangles=computeEncirclingTriangles(null);
+#computeEncirclingTriangles(null)==#SetBraidGroupBranchPoints;
+
+theBraids=apply(SetEncirclingTriangles,oneTriangle->computeBraid(varList,f,oneTriangle))
+
+          
+o2 = 300
+
+i3 : 
+i4 : 
+i5 : 
+i6 : 
+i7 : 
+i8 :      
+i9 :      {1.25913599660125-.256270332433769*ii, .939154693091317+.377185011509671*ii, .171345691335004+.386894988353969*ii, 1.42308781662533+.0960791358768296*ii, -.253177880831099+.107602641220806*ii, -.109476138123303-.29167405366085*ii, .569929821301495-.419817390866657*ii}
+{-.253177880831099+.107602641220806*ii, -.109476138123303-.29167405366085*ii, .171345691335004+.386894988353969*ii, .569929821301495-.419817390866657*ii, .939154693091317+.377185011509671*ii, 1.25913599660125-.256270332433769*ii, 1.42308781662533+.0960791358768296*ii}
+{-.253177880831099+.107602641220806*ii, -.109476138123303-.29167405366085*ii, .171345691335004+.386894988353969*ii, .569929821301495-.419817390866657*ii, .939154693091317+.377185011509671*ii, 1.25913599660125-.256270332433769*ii, 1.42308781662533+.0960791358768296*ii}
+
+i10 :       
+i11 : 
+i12 : 
+i13 : 
+i14 : 
+i15 : 
+i16 :       2
+
+o16 = {, }
+
+o16 : List
+
+i17 :       
+o17 = 2
+
+i18 : SetBraidBranchPoints
+
+o18 = SetBraidBranchPoints
+
+o18 : Symbol
+
+i19 : SetBraidGroupBranchPoints
+
+o19 = {.1079422615999+1.47416800988509e-14*ii, -1.21002135544682e-14-1.5323775648677e-15*ii}
+
+o19 : List
+
+i20 : sort oo
+
+o20 = {-1.21002135544682e-14-1.5323775648677e-15*ii, .1079422615999+1.47416800988509e-14*ii}
+
+o20 : List
+
+i21 : 
