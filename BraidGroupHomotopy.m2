@@ -28,7 +28,9 @@ exportMutable{
   "SetBraidGroupBranchPoints",
   "SetDownstairsStartPoint",
   "SetUpstairsStartFiber",
-  "SetEncirclingTriangles"
+  "SetEncirclingTriangles",
+  "SetHyperplaneArrangement"
+--Options
   }
 RadiusBranchPoint=.05;
 
@@ -41,7 +43,7 @@ SetSameSCoordinateTolerance=1e-8
 SetBraidGroupBranchPoints={}
 SetDownstairsStartPoint={}
 SetUpstairsStartFiber={}
-
+SetHyperplaneArrangement={}
 
 
 export {
@@ -51,7 +53,9 @@ export {
     "computeBasePointAndFiber",
     "computeEncirclingTriangles",
     "computeTwistLocusOfTriangle",
-    "computeBraid"
+    "computeBraid",
+    "IsHyperplaneArrangement",
+    "LatexPrint"
     }
  
 
@@ -125,8 +129,12 @@ sortBraid(List) := o ->(twistedSols)->(
 	    reorderSols=reorderSols|{firstSol})
           else (
       	    if (imaginaryPart firstSol)<(imaginaryPart secondSol)
-	    then   	print ("The twist is : "|"["|solCounter+1|","|solCounter+2|"]")
-	    else   	print ("The twist is : "|"["|solCounter+2|","|solCounter+1|"]");
+	    then (
+		print ("The twist is : "|"["|solCounter+1|","|solCounter+2|"]");
+		print("a_{"|solCounter+1|"} ") 		)
+	    else (
+		print ("The twist is : "|"["|solCounter+2|","|solCounter+1|"]");
+		print("a_{"|solCounter+1|"}^{-1} ") 		);
 	    solCounter=solCounter+2;
 	    twistedSols=drop(twistedSols,2);
 	    reorderSols=reorderSols|{secondSol,firstSol})    		  
@@ -134,9 +142,9 @@ sortBraid(List) := o ->(twistedSols)->(
       return apply(reorderSols,i->{i}))
 
 sortComplexNumbers=twistedSols->(
-    print twistedSols;
+--Verbose    print twistedSols;
     twistedSols=sort twistedSols;
-    print twistedSols;
+--Verbose    print twistedSols;
     reorderSols:={};
     solCounter:=0;
     while #twistedSols>0 do(
@@ -199,7 +207,10 @@ for oneBranchT in SetBraidGroupBranchPoints do(
 return SetEncirclingTriangles)
 
 
-computeTwistLocusOfTriangle=method(TypicalValue=>Thing,Options=>{    	
+
+
+computeTwistLocusOfTriangle=method(TypicalValue=>Thing,Options=>{ 
+	IsHyperplaneArrangement=>false   	
     })
 computeTwistLocusOfTriangle(Thing,Thing,Thing) := o ->(varList,f,aTriangle)->(
 (z,t,x,y,yA,s):=varList;
@@ -210,26 +221,46 @@ for segmentNumber to #thePath-1-1 do(
 oneSegment:={thePath_segmentNumber,thePath_(segmentNumber+1)};
 gam':=oneSegment_0;
 gam'':=oneSegment_1;
-fs:=sub(f,{z=>x+ii*y,	t=>(1-s)*gam'+s*gam''	});
---print 3;
-g1:=value replace("ii","0",     toString  (fs));
-g1=1/sub(max((flatten entries ((coefficients g1)_1))),CC)*g1;
---print 1;
-g2:=value replace("ii","0",     toString  (ii*fs));
-g2=1/sub(max((flatten entries ((coefficients g2)_1))),CC)*g2;
---print 2;
-fiberG:={g1,g2,sub(g1,{y=>yA}),sub(g2,{y=>yA})};
-makeB'InputFile(StoreBraidGroupFiles,B'Configs=>{"MPTYPE"=>2},    
+if not o.IsHyperplaneArrangement 
+then (
+  fs:=sub(f,{z=>x+ii*y,	t=>(1-s)*gam'+s*gam''	});
+  g1:=value replace("ii","0",     toString  (fs));
+  g2:=value replace("ii","0",     toString  (ii*fs));
+  fiberG:={g1,g2,sub(g1,{y=>yA}),sub(g2,{y=>yA})};
+  makeB'InputFile(StoreBraidGroupFiles,B'Configs=>{"MPTYPE"=>2},    
     AffVariableGroup=>{x,y,yA,s},
     B'Polynomials=>fiberG    );
-runBertini(StoreBraidGroupFiles);
-realSols:=importSolutionsFile(StoreBraidGroupFiles,NameSolutionsFile=>"real_finite_solutions");
-realSCoords:=radicalList((realSols/last),SetSameSCoordinateTolerance);
+  runBertini(StoreBraidGroupFiles);
+  realSols:=importSolutionsFile(StoreBraidGroupFiles,NameSolutionsFile=>"real_finite_solutions");
+  realSCoords:=radicalList((realSols/last),SetSameSCoordinateTolerance);
 --print (#realSols);
 --print radicalList(sort (realSols/last),SetSameSCoordinateTolerance);
-branchS:=delete(null,apply(realSCoords,i->if  (realPart i)<1 and 0<(realPart  i) then i else null));
-if #branchS>0 then branchS=sort branchS;
-twistLocusSegment:=    (for i in branchS list 	sub(sub((1-s)*gam'+s*gam'',{s=>i}),CC))|{gam''}    ;
+  branchS:=delete(null,apply(realSCoords,i->if  (realPart i)<1 and 0<(realPart  i) then i else null));
+  if #branchS>0 then branchS=sort branchS;
+  twistLocusSegment:=    (for i in branchS list 	sub(sub((1-s)*gam'+s*gam'',{s=>i}),CC))|{gam''}    ;
+)
+else if o.IsHyperplaneArrangement then(
+  branchS={};
+--  print 1;
+  apply(subsets(SetHyperplaneArrangement,2),H2->(
+  fs=sub(product H2,{z=>x+ii*y,	t=>(1-s)*gam'+s*gam''	});
+--  print fs;
+  g1=value replace("ii","0",     toString  (fs));
+  g2=value replace("ii","0",     toString  (ii*fs));
+  fiberG={g1,g2,sub(g1,{y=>yA}),sub(g2,{y=>yA})};
+  makeB'InputFile(StoreBraidGroupFiles,B'Configs=>{"MPTYPE"=>2},    
+    AffVariableGroup=>{x,y,yA,s},
+    B'Polynomials=>fiberG    );
+  runBertini(StoreBraidGroupFiles);
+  realSols=importSolutionsFile(StoreBraidGroupFiles,NameSolutionsFile=>"real_finite_solutions");
+  realSCoords=radicalList((realSols/last),SetSameSCoordinateTolerance);
+--print (#realSols);
+--print radicalList(sort (realSols/last),SetSameSCoordinateTolerance);
+  branchS=branchS|delete(null,apply(realSCoords,i->if  (realPart i)<1 and 0<(realPart  i) then i else null));
+  if #branchS>0 then branchS=sort radicalList( branchS,SetSameSCoordinateTolerance);
+  ));
+  twistLocusSegment=    (for i in branchS list 	sub(sub((1-s)*gam'+s*gam'',{s=>i}),CC))|{gam''}    ;
+    );
 print ("Twist locus on a segment",(gam',gam''),twistLocusSegment);
 print("tw"|segmentNumber+1|" = "|toString twistLocusSegment);
 oneTwistLocusPathAndLoop=oneTwistLocusPathAndLoop|twistLocusSegment;
@@ -240,13 +271,15 @@ return oneTwistLocusPathAndLoop
 )
 
 
+
 --Now we determine the twist.
 ---------------------------------------------------------------------------------
 computeBraid=method(TypicalValue=>Thing,Options=>{    	
+    IsHyperplaneArrangement=>false   	
     })
 computeBraid(Thing,Thing,Thing) := o ->(varList,f,aTriangle)->(
     (z,t,x,y,yA,s):=varList;
-    criticalTwistPointsOneBranchPoint:=computeTwistLocusOfTriangle(varList,f,aTriangle);
+    criticalTwistPointsOneBranchPoint:=computeTwistLocusOfTriangle(varList,f,aTriangle,IsHyperplaneArrangement=>o.IsHyperplaneArrangement);
     writeStartFile(StoreBraidGroupFiles, for i in SetUpstairsStartFiber list {i} ,NameStartFile=>"start");
     writeParameterFile(StoreBraidGroupFiles, SetDownstairsStartPoint,NameParameterFile=>"start_parameters");    
     makeB'InputFile(StoreBraidGroupFiles,
@@ -275,14 +308,37 @@ for smallSegmentIndex to #criticalTwistPointsOneBranchPoint-1 do (
   if #radicalList((flatten s1)/realPart,1e-10)<#(flatten s1) ---<0 to print allfibers
   then (
       printingPrecision=5;
-      print (criticalTwistPointsOneBranchPoint_smallSegmentIndex);
-      print (toString s1);
-      print (toString s2);
+--VERBOSE
+--      print (criticalTwistPointsOneBranchPoint_smallSegmentIndex);
+--      print (toString s1);
+--      print (toString s2);
       printingPrecision=300);
   moveB'File(StoreBraidGroupFiles,"final_parameters","start_parameters");        
-  print ("END SEGMENT "|smallSegmentIndex,criticalTwistPointsOneBranchPoint_smallSegmentIndex)	
+--VERBOSE  print ("END SEGMENT "|smallSegmentIndex,criticalTwistPointsOneBranchPoint_smallSegmentIndex)	
 );
     print ("END BRANCH POINT "))      
+
+
+---Now we have a new set of functions specifically designed for hyperplane arrangements. 
+---
+--the hyperplanes are in {z,t,w1,w2}
+
+--fixHyperplaneRestriction=(z,t,wList)->SetHyperplaneIntersection=apply(#wList,i=>wList_i=>makeB'Section({z,t}|{1},NameB'Section=>wList_i));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 {*
@@ -699,3 +755,48 @@ allBranchPointsT=radicalList( (importSolutionsFile(theDir))/first,1e-10)
 
 L={-.32844+.055715*ii, .10536-.34454*ii, .2258+.2872*ii, .96477+2.7327*ii, 1.0007-2.7228*ii, 1.0007-2.8521*ii, 1.0311+2.8437*ii}
 netList sortBraid(apply(L,i->{i})    )
+
+
+
+{*
+
+computeTwistLocusOfTriangle=method(TypicalValue=>Thing,Options=>{    	
+    })
+computeTwistLocusOfTriangle(Thing,Thing,Thing) := o ->(varList,f,aTriangle)->(
+(z,t,x,y,yA,s):=varList;
+oneTwistLocusPathAndLoop:={};
+thePath:=SetDownstairsStartPoint|aTriangle|SetDownstairsStartPoint;
+for segmentNumber to #thePath-1-1 do(
+--print segmentNumber;
+oneSegment:={thePath_segmentNumber,thePath_(segmentNumber+1)};
+gam':=oneSegment_0;
+gam'':=oneSegment_1;
+fs:=sub(f,{z=>x+ii*y,	t=>(1-s)*gam'+s*gam''	});
+--print 3;
+g1:=value replace("ii","0",     toString  (fs));
+--g1=1/sub(max((flatten entries ((coefficients g1)_1))),CC)*g1;
+--print 1;
+g2:=value replace("ii","0",     toString  (ii*fs));
+--g2=1/sub(max((flatten entries ((coefficients g2)_1))),CC)*g2;
+--print 2;
+fiberG:={g1,g2,sub(g1,{y=>yA}),sub(g2,{y=>yA})};
+makeB'InputFile(StoreBraidGroupFiles,B'Configs=>{"MPTYPE"=>2},    
+    AffVariableGroup=>{x,y,yA,s},
+    B'Polynomials=>fiberG    );
+runBertini(StoreBraidGroupFiles);
+realSols:=importSolutionsFile(StoreBraidGroupFiles,NameSolutionsFile=>"real_finite_solutions");
+realSCoords:=radicalList((realSols/last),SetSameSCoordinateTolerance);
+--print (#realSols);
+--print radicalList(sort (realSols/last),SetSameSCoordinateTolerance);
+branchS:=delete(null,apply(realSCoords,i->if  (realPart i)<1 and 0<(realPart  i) then i else null));
+if #branchS>0 then branchS=sort branchS;
+twistLocusSegment:=    (for i in branchS list 	sub(sub((1-s)*gam'+s*gam'',{s=>i}),CC))|{gam''}    ;
+print ("Twist locus on a segment",(gam',gam''),twistLocusSegment);
+print("tw"|segmentNumber+1|" = "|toString twistLocusSegment);
+oneTwistLocusPathAndLoop=oneTwistLocusPathAndLoop|twistLocusSegment;
+--print (#oneTwistLocusPathAndLoop,segmentNumber)
+);
+print ("Twist loci found! ");
+return oneTwistLocusPathAndLoop
+)
+*}
