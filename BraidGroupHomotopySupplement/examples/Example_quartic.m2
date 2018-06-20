@@ -3,22 +3,28 @@ loadPackage"BraidGroupHomotopy"
 --
 printingPrecision=300
 R=CC[z,t,x,y,yA,s]
-varList=(z,t,x,y,yA,s)
-f=z^4-4*z^2+3+t; 
-RadiusBranchPoint=.5
-SetBraidGroupBranchPoints={-3,1};
+varList=(z,t,x,y,yA,s)--(indeterminant, path parameter, real part of indeterminant, imaginary part of indeterminant, imaginary part of indeterminant, line segment parameter)
+f=z^4-4*z^2+3+t; --This defines the algebraic curve. We will project this curve to the t coordinates. 
+RadiusBranchPoint=.5---We take a radius of .5 about each branch point.
+SetBraidGroupBranchPoints={-3,1};--These are the branch points.
+--The SetDownstairsStartPoint is a value of t given in a list.
+--The SetBraidGroupBranchPoints is a list of the z coordinates in the fiber of the value of t in SetDownstairsStartPoint.
 SetUpstairsStartFiber={-1.77273369086864+.0749433780110061*ii, -.939691646423518-.141381113276106*ii, .939691646423518+.141381113276106*ii, 1.77273369086864-.0749433780110058*ii}
 SetDownstairsStartPoint={-.222095320092058+.604206069448226*ii}
 
-#SetUpstairsStartFiber==first degree f
-SetEncirclingTriangles=computeEncirclingTriangles(null)
-#computeEncirclingTriangles(null)==#SetBraidGroupBranchPoints
-oneTriangle=first SetEncirclingTriangles
-twoTriangle=last SetEncirclingTriangles
+#SetUpstairsStartFiber==first degree f--Check to make sure we have the correct configurations. 
+SetEncirclingTriangles=computeEncirclingTriangles(null)--Set's the linesegments we will track. 
+#computeEncirclingTriangles(null)==#SetBraidGroupBranchPoints--Check for errors. 
+oneTriangle= SetEncirclingTriangles_0 
+twoTriangle=SetEncirclingTriangles_1
 
 --computeTwistLocusOfTriangle(varList,f,oneTriangle)
-computeBraid(varList,f,oneTriangle)
+computeBraid(varList,f,oneTriangle)--Computes the generator around the firs   branch point. 
+computeBraid(varList,f,twoTriangle)--Computes the generator around the second branch point.
 
+
+
+end--------------------------------------------------------------------------------------------------------------------------------
 matLabTriangle=aTri->(
     print ("x = "|toString new Array from  ((SetDownstairsStartPoint|aTri|SetDownstairsStartPoint)/realPart));
 print ("y= "|toString new Array from  ((SetDownstairsStartPoint|aTri|SetDownstairsStartPoint)/imaginaryPart)
